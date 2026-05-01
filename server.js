@@ -9,8 +9,7 @@ app.use(express.json());
 
 const CLIENT_ID = process.env.SF_CLIENT_ID;
 const CLIENT_SECRET = process.env.SF_CLIENT_SECRET;
-const CALLBACK_URL = 'http://localhost:3000/oauth/callback';
-
+const CALLBACK_URL = 'https://salesforce-validator-j68gt4e1y-rahuluniyals-projects.vercel.app/oauth/callback';
 // Token exchange
 app.post('/auth/token', async (req, res) => {
   const { code, code_verifier } = req.body;
