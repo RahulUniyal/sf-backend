@@ -10,6 +10,8 @@ app.use(express.json());
 const CLIENT_ID = process.env.SF_CLIENT_ID;
 const CLIENT_SECRET = process.env.SF_CLIENT_SECRET;
 const CALLBACK_URL = 'https://salesforce-validator.vercel.app/oauth/callback';
+
+// Token exchange
 app.post('/auth/token', async (req, res) => {
   const { code, code_verifier } = req.body;
   try {
@@ -23,6 +25,61 @@ app.post('/auth/token', async (req, res) => {
         code: code,
         code_verifier: code_verifier
       })
+    );
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Validation Rules fetch
+app.get('/api/rules', async (req, res) => {
+  const { instanceUrl, accessToken } = req.query;
+  try {
+    const response = await axios.get(
+      `${instanceUrl}/services/data/v59.0/tooling/query?q=SELECT+Id,Active,EntityDefinitionId,ValidationName+FROM+ValidationRule`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      }
+    );
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Rule toggle
+app.patch('/api/rules/:id', async (req, res) => {
+  const { instanceUrl, accessToken } = req.query;
+  const { id } = req.params;
+  const { metadata } = req.body;
+  try {
+    await axios.patch(
+      `${instanceUrl}/services/data/v59.0/tooling/sobjects/ValidationRule/${id}`,
+      { Metadata: metadata },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Single rule fetch
+app.get('/api/rules/:id', async (req, res) => {
+  const { instanceUrl, accessToken } = req.query;
+  const { id } = req.params;
+  try {
+    const response = await axios.get(
+      `${instanceUrl}/services/data/v59.0/tooling/sobjects/ValidationRule/${id}`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      }
     );
     res.json(response.data);
   } catch (error) {
